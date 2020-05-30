@@ -15,7 +15,7 @@
 #define MAX_ALPHA 50
 #define TAILLE_MOT_MAX 9
 
-extern Widget Text1,Text2,Text3,Text4,Text5,Text6,Text7,Text8,Text9,Entry1,Entry2,Resultats;
+extern Widget Text1,Text2,Text3,Text4,Text5,Text6,Text7,Text8,Text9,Entry1,Entry2,Resultats,BonusMot;
 
 
 /*	
@@ -348,23 +348,28 @@ Rôle : Parcoure le mot, renvoie 1 si tous les caractères sont des lettres tire
 		0 sinon
 */
 int verifLettres(const char *mot_choisi, data *d){
-	int cpt_lettres = 0 ; //compteur de lettres valides
+	//elimine le mot vide
+	if ( strcmp(mot_choisi,"")==0){return 0;}
+	int cpt_lettres_valides = 0 ; //compteur de lettres valides
 	int antiDoublon[TAILLE_MOT_MAX] = {0};  //pour eviter d'utiliser les lettres 2 fois
 	for (int c = 0 ; c < strlen(mot_choisi) ; c++){
 		//verifier que chaque lettre est une lettre tiree (sans doublon)
 		for (int i=0 ; i<TAILLE_MOT_MAX ; i++){
 			if (mot_choisi[c] == d->lettres[i]){
-				if (antiDoublon[i] == 0){
+				
+				if ( (antiDoublon[i] == 0)) {
 					//lettre non utilisée plus de fois que disponible
-					cpt_lettres ++;
 					antiDoublon[i]=1;
-				}				
-			}
+					cpt_lettres_valides++;
+					break;
+				}
+			
+			}		
 		}
 	}
 	
 	//renvoie 1 si le compteur de lettres correspond à la taille du mot
-	if (cpt_lettres >= strlen(mot_choisi)){
+	if (cpt_lettres_valides == strlen(mot_choisi) ) {
 		return 1;
 	}
 
@@ -375,13 +380,117 @@ int verifLettres(const char *mot_choisi, data *d){
 
 
 /*
-Antécédent : un mot a été choisi avec 9 caractères max
-Role 		: renvoie 1 si le mot choisi existe dans le dictionnaire et s'il est composé de lettres tirees sans doublon
-			0 sinon
+	Antécédent : un mot a été choisi avec 9 caractères max
+	Role : Prend les mots des joueurs et annonce le gagnant, 
+			ainsi que la raison de la victoire ou de la defaite
+			Affiche les resultats dans la case d'affichage
+
 */
-int motValide(const char *mot_choisi, data *d){
-	if ( (verifDico(mot_choisi) == 1) && (verifLettres(mot_choisi,d) == 1) ){
-		return 1;
+void motsValides(char *mot1, char *mot2, data *d){
+		//on met en majuscule les mots des joueurs au cas ou ils ne l'ont pas deja fait
+		majuscules(mot1);
+		majuscules(mot2);
+
+		//annoncer le gagnant sur la fenetre d'affichage
+		if (!verifLettres(mot1, d)){
+			//lettres du joueur 1 invalides
+			if (!verifLettres(mot2, d)){
+				//les 2 joueurs ont utilise des mauvaises lettres
+				SetTextWidgetText(Resultats,"Aucun gagnant, les lettres utilisees sont invalides",False);
+			}
+			else{
+				//les lettres du joueur 2 sont bonnes
+				if (verifDico(mot2)){
+					//mot du joueur 2 valide
+					SetTextWidgetText(Resultats,"Le joueur 2 gagne, les lettres du joueur 1 sont invalides",False);
+				}
+			}
+		}
+
+		//lettres du joueur 1 valides
+		else if (!verifLettres(mot2, d)){
+			//lettres du joueur 2 invalides
+			if (verifDico(mot1)){
+				//mot du joueur 1 valide
+				SetTextWidgetText(Resultats,"Le joueur 1 gagne, les lettres du joueur 2 sont invalides",False);
+			}
+		}
+
+		//lettres des 2 joueurs valides
+		else if (verifDico(mot1)){
+			//mot 1 valide
+			if (!verifDico(mot2)){
+				//mot 2 n'existe pas dans le dico
+				SetTextWidgetText(Resultats,"Le joueur 1 gagne, le mot du joueur 2 n'existe pas",False);
+			}
+			else {
+				//les 2 mots sont valides
+				if (strlen(mot1)==strlen(mot2)){
+					//les 2 mots ont la meme longueur
+					SetTextWidgetText(Resultats,"Ex aequo, les 2 mots sont valides et ont la meme longueur",False);
+				}
+				else{
+					if(strlen(mot1)>strlen(mot2)){
+						//le mot 1 est plus long
+						SetTextWidgetText(Resultats,"Le joueur 1 gagne, son mot est plus long",False);
+			
+					}
+					else{
+						//le mot 2 est plus long
+						SetTextWidgetText(Resultats,"Le joueur 2 gagne, son mot est plus long",False);
+					}
+
+				}
+			}
+		}
+
+		else{
+			//mot 2 valide
+			if (verifDico(mot2)){
+				//mot 1 n'existe pas dans le dico
+				SetTextWidgetText(Resultats,"Le joueur 2 gagne, le mot du joueur 1 n'existe pas",False);
+			}
+		}
+}
+
+
+/*
+	Antécédent : 9 lettres ont été tirées
+	Role : Cherche le mot le plus long possible avec les 9 lettres tirees
+			Parcoure le dictionnaire,
+			Quand les lettres du mot sont valides, le mot est stocké si sa longueur est plus grande que le mot precedent
+			A la fin, ecrit dans la case d'affichage le mot stocké le plus long
+*/
+void bonus(data *d){
+	FILE *in;  //dictionnaire
+	char prev[MAX_ALPHA] = "" ;
+	
+	//gestion d'erreur d'ouverture du dictionnaire
+	if ( ((in = fopen("dicolinux","r")) == NULL) ){
+		perror("dico");
+		exit(errno);
 	}
-	return 0;
+	//printf("%s\n",d->lettres );
+	
+	char mot[MAX_ALPHA];
+	//parcoure le dictionnaire
+	while( fscanf(in,"%s",mot) != EOF ){
+		majuscules(mot);
+	
+		if (strlen(mot)<=TAILLE_MOT_MAX){
+			if (verifLettres(mot,d)){
+				//printf("%s %d\n",mot,verifLettres(mot,d) );
+				if (strlen(mot)>=strlen(prev)){
+					strcpy(prev,mot);
+				}
+			}
+		}
+
+	}
+
+
+	//fermeture du dictionnaire
+	//printf("%s %d\n",prev,verifLettres(prev,d) );
+	SetTextWidgetText(BonusMot,prev,False);
+	fclose(in);
 }
