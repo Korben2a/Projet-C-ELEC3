@@ -289,6 +289,7 @@ void clear( data *d){
 	SetStringEntry(Entry1,"");
 	SetStringEntry(Entry2,"");
 	SetTextWidgetText(Resultats,"",False);
+	SetTextWidgetText(BonusMot,"",False);
 
 	//reinitialise la structure
 	resetLettres_tirees(d);
