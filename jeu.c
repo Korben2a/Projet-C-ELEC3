@@ -14,8 +14,8 @@
 Widget 	Text1,Text2,Text3,Text4,Text5,Text6,Text7,Text8,Text9, //Zones de texte pour afficher les lettres tirées
 		Entry1,	  // zone de saisie du joueur1
 		Entry2,	  // zone de saisie du joueur2
-		Resultats; //Zone de texte pour les resultats
-
+		Resultats, //Zone de texte pour les resultats
+		BonusMot;
 
 /*	Antécédent : structure data creee et initialisee
 	Role : cree l'interface graphique (fenetre, tous les boutons, zones de saisies)
@@ -32,7 +32,8 @@ void init_display(int argc, char *argv[], void *d){
 			Bquit,	//bouton pour quitter
 			Bverifier, //bouton pour verifier les resultats
 			Block1, //case invisible pour faire de l'espace
-			Block2;	//case invisible pour faire de l'espace
+			Block2,	//case invisible pour faire de l'espace
+			BonusTxt;
 
 
 	//creation boutons et zones de saisies
@@ -52,12 +53,13 @@ void init_display(int argc, char *argv[], void *d){
 	Entry1 = MakeStringEntry(NULL, entry_size, NULL, NULL);
 	Entry2 = MakeStringEntry(NULL, entry_size, NULL, NULL);
 	Bverifier = MakeButton("  Verififier les resultats  ", verifier, d);
-	Resultats = MakeTextWidget("",False,False,400,20);
+	Resultats = MakeTextWidget("",False,False,500,18);
 	Bjouer = MakeButton("  (Re)Jouer  ", jouer, d);
 	Bquit = MakeButton("  Quitter  ", quitter, NULL);
 	Block1 = MakeLabel("");
 	Block2 = MakeLabel("                                         ");
-
+	BonusMot = MakeTextWidget("",False,False,200,18);
+	BonusTxt = MakeLabel(" Mot le plus long possible (bonus) : ");
 
 	//Couleur des Widget
 	SetBgColor(Bvoyelle,GetRGBColor(26,6,33));
@@ -73,9 +75,10 @@ void init_display(int argc, char *argv[], void *d){
 	SetBgColor(Entry1,GetRGBColor(247,229,254));
 	SetBgColor(Entry2,GetRGBColor(247,229,254));
 	SetBgColor(Resultats,GetRGBColor(247,229,254));
-	SetBgColor(Resultats,GetRGBColor(247,229,254));
+	//SetBgColor(Resultats,GetRGBColor(247,229,254));
 	SetBgColor(Block1,GetRGBColor(216,162,233));
 	SetBgColor(Block2,GetRGBColor(216,162,233));
+	SetBgColor(BonusMot,GetRGBColor(247,229,254));
 
 	SetFgColor(Bvoyelle,GetNamedColor("White"));
 	SetFgColor(Bconsonne,GetNamedColor("White"));
@@ -118,11 +121,13 @@ void init_display(int argc, char *argv[], void *d){
 	SetWidgetPos(Entry2, PLACE_UNDER, Text1, PLACE_RIGHT, Label2);
 	SetWidgetPos(Bverifier, PLACE_UNDER, Entry1, NO_CARE, NULL);
 	SetWidgetPos(Resultats, PLACE_UNDER, Entry1, PLACE_RIGHT, Bverifier);
+	SetWidgetPos(BonusTxt, PLACE_UNDER, Bverifier, NO_CARE, NULL);
+	SetWidgetPos(BonusMot, PLACE_UNDER, Bverifier, PLACE_RIGHT,BonusTxt);
+	SetWidgetPos(Block1, PLACE_UNDER, BonusTxt, NO_CARE, NULL);
+	SetWidgetPos(Block2, PLACE_UNDER, Block1, PLACE_RIGHT, Bquit);
 	SetWidgetPos(Bquit, PLACE_UNDER, Block1, NO_CARE, NULL);
 	SetWidgetPos(Bjouer, PLACE_UNDER, Block1, PLACE_RIGHT, Block2);
-	SetWidgetPos(Block1, PLACE_UNDER, Bverifier, NO_CARE, NULL);
-	SetWidgetPos(Block2, PLACE_UNDER, Block1, PLACE_RIGHT, Bquit);
-
+	
 
 	/*pour gérer les couleurs*/
 	GetStandardColors();
