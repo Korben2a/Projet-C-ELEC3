@@ -41,7 +41,8 @@ extern void clear(data *d);
 extern char * majuscules(char *mot_choisi);
 extern int verifDico(const char *mot_choisi);
 extern int verifLettres(const char *mot_choisi, data *d);
-extern int motValide(const char *mot_choisi, data *d);
+void motsValides(char *mot1, char *mot2, data *d);
 
 extern char * tirerLettres(char *lettres_tirees);
 
+extern void bonus(data *d);
